@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GrowLab Dashboard</title>
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/widgets.css') }}">
+
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
+
+  <!-- Per-widget JS -->
+  {% for script in config.get('widget_scripts', []) %}
+    <script defer src="{{ url_for('static', filename='js/widgets/' ~ script) }}"></script>
+  {% endfor %}
+</head>
+<body>
+  <header>
+    <h1>GrowLab Environment Dashboard</h1>
+  </header>
+
+  <main id="dashboard">
+    {% for html in widgets %}
+      <section class="widget">
+        {{ html|safe }}
+      </section>
+    {% endfor %}
+  </main>
+
+  <footer>
+    <p>© {{ config.get('dashboard_title', 'GrowLab') }} {{ now().year }}</p>
+  </footer>
+</body>
+</html>

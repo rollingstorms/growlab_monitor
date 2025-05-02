@@ -1,0 +1,21 @@
+
+
+<div class="sensor-widget" id="sensor-{{ device.id }}">
+  <h2>{{ device.name }}</h2>
+
+  <div class="sensor-current">
+    <p>
+      <strong>Current Temperature:</strong>
+      <span class="sensor-temp">--</span> °C
+    </p>
+    <p>
+      <strong>Current Humidity:</strong>
+      <span class="sensor-hum">--</span> %
+    </p>
+  </div>
+
+  <div class="sensor-charts">
+    <canvas id="temp-chart-{{ device.id }}" width="400" height="200"></canvas>
+    <canvas id="hum-chart-{{ device.id }}" width="400" height="200"></canvas>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+
+
+# config.yaml — GrowLab Dashboard & Controller Configuration
+
+# SQLite database file for sensor readings and device logs
+DATABASE: "data.db"
+
+# Dashboard UI settings
+dashboard_title: "GrowLab Environment Dashboard"
+widget_scripts:
+  - sensor.js
+  - device.js
+  - clock.js
+  - device_list.js
+
+# Widgets and their loader classes
+widgets:
+  sensor:
+    module: "widgets.sensor"
+    class: "SensorWidget"
+  device:
+    module: "widgets.device"
+    class: "DeviceWidget"
+  clock:
+    module: "widgets.clock"
+    class: "ClockWidget"
+  device_list:
+    module: "widgets.device_list"
+    class: "DeviceListWidget"
+
+# Devices to display/control on the dashboard
+devices:
+  - id: "sensor1"
+    type: "sensor"
+    name: "Grow Lab Sensor"
+    widget: "sensor"
+  - id: "fan1"
+    type: "device"
+    name: "Exhaust Fan"
+    widget: "device"
+  - id: "light1"
+    type: "device"
+    name: "Grow Lights"
+    widget: "device"
+
+# I²C sensor configuration
+sensor:
+  i2c_bus: 1
+
+# Thresholds for automatic control logic
+thresholds:
+  temp:
+    high: 28.0   # °C, turn fan on above
+    low: 24.0    # °C, turn fan off below
+  hum:
+    high: 70.0   # %, optional for humidifier
+    low: 45.0    # %
+
+# Gosund plug IPs for device control
+plugs:
+  fan:
+    ip: "192.168.1.100"
+  light:
+    ip: "192.168.1.101"
+
+# Scheduler settings (seconds between sensor readings)
+schedule:
+  reading_interval_s: 60

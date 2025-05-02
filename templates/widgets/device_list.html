@@ -1,0 +1,12 @@
+<div class="device-list-widget" id="device-list-widget">
+  <h2>Configured Devices</h2>
+  <ul>
+    {% for dev in devices %}
+      <li id="device-item-{{ dev.id }}">
+        <strong>{{ dev.name }}</strong> — {{ dev.type }}
+      </li>
+    {% else %}
+      <li>No devices configured.</li>
+    {% endfor %}
+  </ul>
+</div>

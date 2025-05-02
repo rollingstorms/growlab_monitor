@@ -1,0 +1,92 @@
+
+
+/* widgets.css - Styles for all dashboard widgets */
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+}
+
+header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+main#dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+section.widget {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1rem;
+  width: 400px;
+  box-sizing: border-box;
+}
+
+/* Sensor widget */
+.sensor-widget .sensor-current {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sensor-widget .sensor-charts canvas {
+  display: block;
+  margin: 0 auto 1rem;
+  max-width: 100%;
+}
+
+/* Device widget */
+.device-widget .device-current,
+.device-widget .device-controls,
+.device-widget .device-history {
+  margin-bottom: 1rem;
+}
+
+.device-widget .device-controls button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+/* Clock widget */
+.clock-widget {
+  text-align: center;
+}
+
+.clock-widget .clock-display {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* Device list widget */
+.device-list-widget ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.device-list-widget li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.device-list-widget li:last-child {
+  border-bottom: none;
+}
+
+footer {
+  background-color: #ecf0f1;
+  padding: 1rem;
+  text-align: center;
+}
