@@ -38,13 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           scales: {
             x: {
-              type: 'time',
-              time: {
-                parser: 'YYYY-MM-DD HH:mm:ss',
-                tooltipFormat: 'lll',
-                unit: 'minute',
-                displayFormats: { minute: 'HH:mm' }
-              },
+              type: 'category', // Changed from 'time' to avoid parsing issues
               title: { display: true, text: 'Time' }
             },
             y: {
@@ -76,8 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
         metrics.forEach(m => {
           const v = current[m.name];
           console.log(`Metric ${m.name}: ${v}`);
-          if (v !== undefined) {
-            spans[m.name].textContent = v.toFixed(2);
+          if (v !== undefined && v !== null) {
+            // Handle potential string values
+            const numValue = typeof v === 'string' ? parseFloat(v) : v;
+            spans[m.name].textContent = isNaN(numValue) ? '--' : numValue.toFixed(2);
           }
         });
 
@@ -87,9 +83,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Prepare timeline and series per metric
-        const times = history.map(r => r.ts);
+        // Use simpler timestamps for display, we'll use category scale instead of time
+        // This avoids date parsing issues
+        const times = history.map(r => {
+          // Extract just the time portion or format as needed
+          const ts = r.ts;
+          return ts.split('T').length > 1 ? ts.split('T')[1].substring(0, 5) : ts;
+        });
+        
+        // Convert each metric series separately
         metrics.forEach(m => {
-          const data = history.map(r => r[m.name] ?? null);
+          const data = history.map(r => {
+            const val = r[m.name];
+            // Handle missing or string values
+            if (val === undefined || val === null) return null;
+            return typeof val === 'string' ? parseFloat(val) : val;
+          });
+          
           const chart = charts[m.name];
           chart.data.labels = times;
           chart.data.datasets[0].data = data;
@@ -108,9 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
           metrics.forEach(m => {
             const td = document.createElement('td');
             const value = r[m.name];
-            td.textContent = (value !== undefined && value !== null)
-              ? value.toFixed(2)
-              : '';
+            if (value !== undefined && value !== null) {
+              const numValue = typeof value === 'string' ? parseFloat(value) : value;
+              td.textContent = isNaN(numValue) ? '--' : numValue.toFixed(2);
+            } else {
+              td.textContent = '--';
+            }
             tr.appendChild(td);
           });
           tableBody.appendChild(tr);
