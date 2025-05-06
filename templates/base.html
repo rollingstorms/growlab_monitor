@@ -22,9 +22,12 @@
   </header>
 
   <main id="dashboard">
-    {% for html in widgets %}
+    {% for w in widgets %}
       <section class="widget">
-        {{ html|safe }}
+        <a href="{{ url_for('widget_detail', device_id=w.id) }}"
+           style="display:block; text-decoration:none; color:inherit;">
+          {{ w.html|safe }}
+        </a>
       </section>
     {% endfor %}
   </main>

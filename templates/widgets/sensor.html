@@ -1,21 +1,32 @@
-
-
-<div class="sensor-widget" id="sensor-{{ device.id }}">
+<div class="sensor-widget" id="sensor-{{ device.id }}"
+     data-metrics='{{ device.metrics | tojson }}'>
   <h2>{{ device.name }}</h2>
 
   <div class="sensor-current">
+    {% for m in device.metrics %}
     <p>
-      <strong>Current Temperature:</strong>
-      <span class="sensor-temp">--</span> °C
+      <strong>{{ m.label }}:</strong>
+      <span class="sensor-{{ m.name }}">--</span>
     </p>
-    <p>
-      <strong>Current Humidity:</strong>
-      <span class="sensor-hum">--</span> %
-    </p>
+    {% endfor %}
   </div>
 
   <div class="sensor-charts">
-    <canvas id="temp-chart-{{ device.id }}" width="400" height="200"></canvas>
-    <canvas id="hum-chart-{{ device.id }}" width="400" height="200"></canvas>
+    {% for m in device.metrics %}
+      <canvas id="chart-{{ m.name }}-{{ device.id }}" width="400" height="200"></canvas>
+    {% endfor %}
+  </div>
+  <div class="sensor-data-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          {% for m in device.metrics %}
+            <th>{{ m.label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody id="table-{{ device.id }}"></tbody>
+    </table>
   </div>
 </div>

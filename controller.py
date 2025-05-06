@@ -3,15 +3,16 @@
 import yaml
 import sqlite3
 from datetime import datetime
-from gosundpy.plug import Plug
+#from gosundpy.plug import Plug
 
 # Load configuration
 cfg = yaml.safe_load(open('config.yaml'))
 DB = cfg.get('DATABASE', 'data.db')
 
 # Initialize plugs from config
-plugs_cfg = cfg.get('plugs', {})
-_plugs = { name: Plug(info['ip']) for name, info in plugs_cfg.items() }
+#plugs_cfg = cfg.get('plugs', {})
+#_plugs = { name: Plug(info['ip']) for name, info in plugs_cfg.items() }
+
 
 def log_device(device_id: str, state: str):
     """
@@ -40,14 +41,14 @@ def set_device(device_id: str, on: bool):
     """
     # Derive the plug key by stripping trailing digits
     key = ''.join(filter(str.isalpha, device_id))
-    plug = _plugs.get(key)
+    plug = None #_plugs.get(key)
     if not plug:
         raise ValueError(f"No plug configured for device '{device_id}'")
     if on:
-        plug.turn_on()
+#        plug.turn_on()
         log_device(device_id, 'on')
     else:
-        plug.turn_off()
+#        plug.turn_off()
         log_device(device_id, 'off')
 
 # Convenience aliases for the two main devices

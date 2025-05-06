@@ -18,30 +18,47 @@ widgets:
   sensor:
     module: "widgets.sensor"
     class: "SensorWidget"
-  device:
-    module: "widgets.device"
-    class: "DeviceWidget"
+  # device:
+  #   module: "widgets.device"
+  #   class: "DeviceWidget"
   clock:
     module: "widgets.clock"
     class: "ClockWidget"
-  device_list:
-    module: "widgets.device_list"
-    class: "DeviceListWidget"
+  # device_list:
+  #   module: "widgets.device_list"
+  #   class: "DeviceListWidget"
 
 # Devices to display/control on the dashboard
 devices:
-  - id: "sensor1"
-    type: "sensor"
-    name: "Grow Lab Sensor"
-    widget: "sensor"
-  - id: "fan1"
-    type: "device"
-    name: "Exhaust Fan"
-    widget: "device"
-  - id: "light1"
-    type: "device"
-    name: "Grow Lights"
-    widget: "device"
+- id: sensor1
+  type: sensor
+  name: "Air Sensor"
+  widget: sensor
+  address: 0x44
+  metrics:
+    - name: temp
+      label: "Temperature (°C)"
+    - name: hum
+      label: "Humidity (%)"
+  source: local
+
+- id: pico_soil
+  type: sensor
+  name: "Soil Sensor"
+  widget: sensor
+  metrics:
+    - name: soil_moisture
+      label: "Soil Moisture (%)"
+  source: remote
+      
+  # - id: "fan1"
+  #   type: "device"
+  #   name: "Exhaust Fan"
+  #   widget: "device"
+  # - id: "light1"
+  #   type: "device"
+  #   name: "Grow Lights"
+  #   widget: "device"
 
 # I²C sensor configuration
 sensor:
@@ -58,10 +75,10 @@ thresholds:
 
 # Gosund plug IPs for device control
 plugs:
-  fan:
-    ip: "192.168.1.100"
-  light:
-    ip: "192.168.1.101"
+  # fan:
+  #   ip: "192.168.1.100"
+  # light:
+  #   ip: "192.168.1.101"
 
 # Scheduler settings (seconds between sensor readings)
 schedule:

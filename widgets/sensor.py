@@ -1,61 +1,77 @@
-
-
 from .base_widget import BaseWidget
 import sqlite3
 from flask import jsonify, current_app as app
 
 class SensorWidget(BaseWidget):
     """
-    Widget for displaying current and historical SHT40 sensor data.
-    Exposes an API endpoint for JSON and renders a template for the dashboard.
+    Generic sensor widget. Reads any number of metrics defined
+    in config.yaml under each device’s `metrics` list.
     """
+
     def register_routes(self):
-        # API endpoint to fetch JSON data for this sensor
-        @self.app.route(f"/api/{self.device_info['id']}/sensor_data")
-        def api_sensor_data():
-            data = self.get_data()
-            return jsonify(data)
+        device_id = self.device_info["id"]
+        endpoint = f"{device_id}_sensor_data"
+
+        def _sensor_data():
+            return jsonify(self.get_data())
+
+        self.app.add_url_rule(
+            f"/api/{device_id}/sensor_data",
+            endpoint=endpoint,
+            view_func=_sensor_data
+        )
 
     def get_data(self):
         """
-        Query the SQLite database for:
-        - current: most recent temperature/humidity reading
-        - history: readings from the last 24 hours
+        Returns JSON with:
+          - metrics: list of {name, label} from config
+          - current: { ts, <metric>: value, ... }
+          - history: list of { ts, <metric>: value, ... } for last 24h
         """
         db_path = app.config.get("DATABASE", "data.db")
+        device_id = self.device_info["id"]
+        metrics_cfg = self.device_info.get("metrics", [])
+
+        # Extract metric keys from config
+        metric_keys = [m["name"] for m in metrics_cfg]
+
+        # Query raw metric/value pairs for last 24h
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-
-        # Fetch latest reading
-        cursor.execute("""
-            SELECT ts, temp, hum
-            FROM readings
-            ORDER BY ts DESC
-            LIMIT 1
-        """)
-        row = cursor.fetchone()
-        current = {"ts": row[0], "temp": row[1], "hum": row[2]} if row else {}
-
-        # Fetch historical readings from last 24 hours
-        cursor.execute("""
-            SELECT ts, temp, hum
-            FROM readings
-            WHERE ts >= datetime('now', '-24 hours')
-            ORDER BY ts
-        """)
-        history = [
-            {"ts": r[0], "temp": r[1], "hum": r[2]}
-            for r in cursor.fetchall()
-        ]
-
+        cursor.execute(
+            "SELECT ts, metric, value FROM readings "
+            "WHERE device_id=? AND ts>=datetime('now','-24 hours') "
+            "ORDER BY ts",
+            (device_id,)
+        )
+        rows = cursor.fetchall()
         conn.close()
-        return {"current": current, "history": history}
+
+        # Pivot into per-timestamp records
+        data_map = {}
+        for ts, metric, value in rows:
+            if metric not in metric_keys:
+                continue
+            rec = data_map.setdefault(ts, {"ts": ts})
+            rec[metric] = value
+
+        # Build sorted history and current
+        history = [data_map[ts] for ts in sorted(data_map)]
+        current = history[-1] if history else {}
+
+        return {
+            "metrics": metrics_cfg,
+            "current": current,
+            "history": history
+        }
 
     def render(self):
         """
-        Render the sensor widget's HTML template with device metadata.
+        Render this sensor’s widget template with both device info
+        and metrics configuration.
         """
-        return self.app.jinja_env.get_template(
-            'widgets/sensor.html',
-            device=self.device_info
-        ).render(device=self.device_info)
+        template = self.app.jinja_env.get_template('widgets/sensor.html')
+        return template.render(
+            device=self.device_info,
+            metrics=self.device_info.get("metrics", [])
+        )

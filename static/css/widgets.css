@@ -90,3 +90,24 @@ footer {
   padding: 1rem;
   text-align: center;
 }
+
+.sensor-data-table {
+  margin-top: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.sensor-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sensor-data-table th,
+.sensor-data-table td {
+  border: 1px solid #ddd;
+  padding: 0.25rem;
+  text-align: right;
+}
+.sensor-data-table th {
+  background-color: #f0f0f0;
+  position: sticky;
+  top: 0;
+}

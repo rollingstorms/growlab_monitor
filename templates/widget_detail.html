@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>{{ config.dashboard_title }} — Detail View</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/widgets.css') }}">
+    {% for script in config.widget_scripts %}
+      <script defer src="{{ url_for('static', filename='js/widgets/' ~ script) }}"></script>
+    {% endfor %}
+  </head>
+  <body>
+    <header>
+      <h1>{{ config.dashboard_title }} — Detail</h1>
+      <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    </header>
+    <main id="detail">
+      <section class="widget detail">
+        {{ widget_html|safe }}
+      </section>
+    </main>
+    <footer>
+      <p>© {{ config.dashboard_title }} {{ now().year }}</p>
+    </footer>
+  </body>
+</html>

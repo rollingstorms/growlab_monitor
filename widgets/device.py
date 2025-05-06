@@ -1,7 +1,7 @@
 from .base_widget import BaseWidget
 import sqlite3
 from flask import jsonify, request, current_app as app
-from controller import set_fan, set_light  # adjust imports per your controller module
+from controller import set_device # adjust imports per your controller module
 
 class DeviceWidget(BaseWidget):
     """
@@ -9,30 +9,30 @@ class DeviceWidget(BaseWidget):
     Exposes API endpoints for status and control, and renders a template.
     """
     def register_routes(self):
-        # Endpoint to fetch current and historical status
-        @self.app.route(f"/api/{self.device_info['id']}/status")
-        def api_device_status():
-            data = self.get_data()
-            return jsonify(data)
+        device_id = self.device_info['id']
 
-        # Endpoint to send control commands (expects JSON {"action": "on"/"off"})
-        @self.app.route(f"/api/{self.device_info['id']}/control", methods=["POST"])
-        def api_device_control():
+        # STATUS endpoint — use a unique endpoint name so Flask doesn’t collide
+        def _status():
+            return jsonify(self.get_data())
+        self.app.add_url_rule(
+            f"/api/{device_id}/status",       # URL path
+            endpoint=f"{device_id}_status",   # unique name for this view
+            view_func=_status
+        )
+
+        # CONTROL endpoint
+        def _control():
             payload = request.get_json()
             action = payload.get("action")
-            dev_id = self.device_info["id"]
-            # Map device ID to controller functions
-            if action == "on":
-                if dev_id == "fan":
-                    set_fan(True)
-                else:
-                    set_light(True)
-            elif action == "off":
-                if dev_id == "fan":
-                    set_fan(False)
-                else:
-                    set_light(False)
+            # call your central controller logic
+            set_device(device_id, action == "on")
             return jsonify({"result": "ok", "action": action})
+        self.app.add_url_rule(
+            f"/api/{device_id}/control",
+            endpoint=f"{device_id}_control",
+            view_func=_control,
+            methods=["POST"]
+        )
 
     def get_data(self):
         """
