@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const deviceId = widget.id.split('-')[1];
     const tableBody = widget.querySelector(`#table-${deviceId}`);
 
+    console.log(`Initializing sensor widget for device: ${deviceId}`);
+    console.log(`Metrics configured:`, metrics);
+
     // Map placeholders and initialize empty charts
     const spans = {};
     const charts = {};
@@ -56,17 +59,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and render the data
     async function updateSensorData() {
       try {
+        console.log(`Fetching sensor data for ${deviceId}...`);
         const res = await fetch(`/api/${deviceId}/sensor_data`);
         const json = await res.json();
+        console.log(`Received data for ${deviceId}:`, json);
+        
         const { current, history } = json;
 
+        if (!current || Object.keys(current).length === 0) {
+          console.warn(`No current data for ${deviceId}`);
+          return;
+        }
+
         // Update current readings
+        console.log(`Updating current readings for ${deviceId}`);
         metrics.forEach(m => {
           const v = current[m.name];
+          console.log(`Metric ${m.name}: ${v}`);
           if (v !== undefined) {
             spans[m.name].textContent = v.toFixed(2);
           }
         });
+
+        if (!history || history.length === 0) {
+          console.warn(`No history data for ${deviceId}`);
+          return;
+        }
 
         // Prepare timeline and series per metric
         const times = history.map(r => r.ts);
@@ -99,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
       } catch (err) {
-        console.error('Failed to fetch sensor data:', err);
+        console.error(`Failed to fetch sensor data for ${deviceId}:`, err);
       }
     }
 

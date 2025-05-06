@@ -98,6 +98,34 @@ def api_readings():
       for ts, m, v in rows
     ])
 
+# NEW API: Diagnostic endpoint to inspect raw data 
+@app.route('/api/diagnostic/readings')
+def diagnostic_readings():
+    """Get raw database readings for debugging"""
+    limit = request.args.get('limit', 100, type=int)
+    device_id = request.args.get('device_id')
+    
+    db = app.config['DATABASE']
+    conn = sqlite3.connect(db)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    if device_id:
+        cur.execute(
+            "SELECT * FROM readings WHERE device_id=? ORDER BY ts DESC LIMIT ?", 
+            (device_id, limit)
+        )
+    else:
+        cur.execute("SELECT * FROM readings ORDER BY ts DESC LIMIT ?", (limit,))
+    
+    rows = [dict(row) for row in cur.fetchall()]
+    conn.close()
+    
+    return jsonify({
+        "count": len(rows),
+        "readings": rows
+    })
+
 def write_reading(device_id, ts, measurements):
     """Insert one row per (device, timestamp, metric, value)."""
     db   = app.config['DATABASE']
@@ -129,4 +157,4 @@ def widget_detail(device_id):
 
 if __name__ == "__main__":
     # Start the Flask development server; adjust host/port as needed
-    app.run(host="0.0.0.0", port=4000)
+    app.run(host="0.0.0.0", port=5000)
