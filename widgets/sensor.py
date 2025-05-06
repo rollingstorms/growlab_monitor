@@ -42,27 +42,27 @@ class SensorWidget(BaseWidget):
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
+        rows = []
         try:
-            # Query raw readings for this device, with no time filter to ensure we get data
+            # Query raw readings for this device, but LIMIT to a reasonable number
+            # to avoid overwhelming the charts - just get last 24 hours
             cursor.execute(
-                "SELECT ts, metric, value FROM readings WHERE device_id=? ORDER BY ts DESC LIMIT 500",
+                "SELECT ts, metric, value FROM readings "
+                "WHERE device_id=? AND ts >= datetime('now', '-24 hours') "
+                "ORDER BY ts DESC "
+                "LIMIT 100", # Reasonable limit to prevent too many data points
                 (device_id,)
             )
             rows = list(cursor.fetchall())
             print(f"Found {len(rows)} readings for {device_id}")
             
-            # Debug: Show first few records to check format
-            if rows:
-                print(f"First record: ts={rows[0]['ts']}, metric={rows[0]['metric']}, value={rows[0]['value']}")
-                
             # If no rows, check if the device exists in the database
             if not rows:
                 cursor.execute("SELECT DISTINCT device_id FROM readings")
                 devices = [r[0] for r in cursor.fetchall()]
-                print(f"Available devices in database: {devices}")
+                print(f"No readings for {device_id}. Available devices: {devices}")
         except Exception as e:
             print(f"Database error: {e}")
-            rows = []
         finally:
             conn.close()
 
@@ -80,11 +80,27 @@ class SensorWidget(BaseWidget):
             rec[metric] = float(value)  # Ensure numeric format
 
         # Build sorted history and current data
+        # For chart display, we need chronological ordering (oldest to newest)
         history = [data_map[ts] for ts in sorted(data_map.keys())]
-        current = history[0] if history else {}  # Most recent should be first since we sorted DESC in query
-
-        print(f"Returning {len(history)} history records")
-        print(f"Current data: {current}")
+        
+        # Handle empty data case
+        if not history:
+            print(f"No data found for device {device_id}")
+            # Create an empty current record with placeholders for all configured metrics
+            current = {"ts": "No data", "data_available": False}
+            # Add null placeholder for each metric
+            for metric in metric_keys:
+                current[metric] = None
+        else:
+            current = history[0] if history else {}
+            current["data_available"] = True
+        
+        # Limit history to reasonable number of points for charting
+        if len(history) > 30:
+            # Sample down to 30 points for charts - take every Nth point
+            step = len(history) // 30
+            history = history[::step]
+            print(f"Reduced history to {len(history)} points")
         
         # Ensure numeric values for JavaScript
         for record in history:
@@ -95,7 +111,8 @@ class SensorWidget(BaseWidget):
         return {
             "metrics": metrics_cfg,
             "current": current,
-            "history": history
+            "history": history,
+            "has_data": len(history) > 0
         }
 
     def render(self):
