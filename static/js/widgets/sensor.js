@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const ctx = chartElement.getContext('2d');
 
+      // Force specific dimensions to avoid height issues
+      chartElement.height = 200;
+      chartElement.style.height = '200px';
+      chartElement.style.maxHeight = '200px';
+      
       charts[m.name] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -52,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
+          maintainAspectRatio: true, // IMPORTANT: Changed to true to respect container dimensions
+          height: 200, // Explicitly set height
           plugins: {
             tooltip: { mode: 'index', intersect: false },
             legend: { display: true, position: 'top' }
@@ -77,17 +83,19 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Fetching sensor data for ${deviceId}...`);
         const res = await fetch(`/api/${deviceId}/sensor_data`);
         const json = await res.json();
-        console.log(`Received data for ${deviceId}, history length: ${json.history ? json.history.length : 0}`);
         
         const { current, history, has_data } = json;
 
         // Update current readings
         metrics.forEach(m => {
           const span = spans[m.name];
+          if (!span) return; // Skip if span not found
+          
           if (has_data && current && current[m.name] !== undefined && current[m.name] !== null) {
             // We have data - show the value
             const numValue = typeof current[m.name] === 'string' ? parseFloat(current[m.name]) : current[m.name];
             span.textContent = isNaN(numValue) ? '--' : numValue.toFixed(2);
+            span.classList.remove('no-data');
           } else {
             // No data available - show "No data" message
             span.textContent = 'No data';
@@ -99,24 +107,27 @@ document.addEventListener('DOMContentLoaded', () => {
           // No data case - show "No data available" in charts
           metrics.forEach(m => {
             const chart = charts[m.name];
-            if (!chart) return;
+            if (!chart) return; // Skip if chart not initialized
             
-            chart.data.labels = ['No data available'];
+            // Set minimal data to avoid layout issues
+            chart.data.labels = [''];
             chart.data.datasets[0].data = [];
-            chart.update();
+            chart.update('none'); // Use 'none' to skip animation
             
             // Add a "No data" message to the chart container
             const chartElement = widget.querySelector(`#chart-${m.name}-${deviceId}`);
             if (chartElement) {
               const container = chartElement.parentNode;
+              
               // Only add the message if it doesn't exist
               if (!container.querySelector('.no-data-message')) {
                 const msg = document.createElement('div');
                 msg.className = 'no-data-message';
-                msg.textContent = 'No data available for this sensor';
-                msg.style.textAlign = 'center';
-                msg.style.color = '#666';
-                msg.style.padding = '20px';
+                msg.textContent = 'No data available';
+                msg.style.position = 'absolute';
+                msg.style.top = '50%';
+                msg.style.left = '50%';
+                msg.style.transform = 'translate(-50%, -50%)';
                 container.appendChild(msg);
               }
             }
@@ -134,9 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const noDataMessages = widget.querySelectorAll('.no-data-message');
         noDataMessages.forEach(msg => msg.remove());
 
-        // Prepare timeline and series per metric
+        // Prepare timeline and series per metric (limited to reasonable number of points)
+        const maxPoints = 20; // Limit points for better performance
+        let displayHistory = history;
+        if (history.length > maxPoints) {
+          const step = Math.floor(history.length / maxPoints);
+          displayHistory = history.filter((_, i) => i % step === 0);
+        }
+        
         // Extract just the time portion for display
-        const times = history.map(r => {
+        const times = displayHistory.map(r => {
           const ts = r.ts;
           return ts.split('T').length > 1 ? ts.split('T')[1].substring(0, 5) : ts;
         });
@@ -146,26 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
           const chart = charts[m.name];
           if (!chart) return; // Skip if chart not initialized
           
-          const data = history.map(r => {
+          const data = displayHistory.map(r => {
             const val = r[m.name];
             if (val === undefined || val === null) return null;
             return typeof val === 'string' ? parseFloat(val) : val;
           });
           
-          // Update chart data but prevent duplicates
+          // Update chart data
           chart.data.labels = times;
           chart.data.datasets[0].data = data;
-          chart.update();
+          
+          // Use the 'none' mode to avoid animation which can cause layout issues
+          chart.update('none');
         });
 
         // Populate the data table (show only a reasonable number of rows)
-        // Clear the table first
         tableBody.innerHTML = '';
         
         // Add rows but limit to latest 10 for readability
-        const displayHistory = history.slice(0, 10);
+        const tableHistory = history.slice(0, 10);
         
-        displayHistory.forEach(r => {
+        tableHistory.forEach(r => {
           const tr = document.createElement('tr');
           // Timestamp cell
           const tdTime = document.createElement('td');
@@ -188,15 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       } catch (err) {
         console.error(`Failed to fetch sensor data for ${deviceId}:`, err);
-        // Show error state in the UI
-        metrics.forEach(m => {
-          if (spans[m.name]) spans[m.name].textContent = 'Error';
-        });
-        
-        if (tableBody) {
-          tableBody.innerHTML = '<tr><td colspan="' + (metrics.length + 1) + 
-                               '" style="text-align: center;">Error loading data</td></tr>';
-        }
       }
     }
 

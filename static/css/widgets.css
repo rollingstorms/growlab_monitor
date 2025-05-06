@@ -38,6 +38,26 @@ section.widget {
   margin-bottom: 1rem;
 }
 
+/* Fix for canvas height issues */
+.sensor-widget .sensor-charts {
+  /* Add container constraints */
+  max-width: 100%;
+}
+
+.sensor-widget .sensor-charts canvas {
+  display: block;
+  margin: 0 auto 1rem;
+  max-width: 100%;
+  /* Strict height constraints to prevent expansion */
+  max-height: 200px !important;
+  height: 200px !important;
+}
+
+/* Force all canvases to have controlled heights */
+canvas {
+  max-height: 200px !important;
+}
+
 .sensor-widget .sensor-charts canvas {
   display: block;
   margin: 0 auto 1rem;
@@ -125,4 +145,7 @@ footer {
   background-color: #f9f9f9;
   border-radius: 4px;
   margin: 10px 0;
+  /* Prevent expansion */
+  height: auto !important;
+  max-height: 80px !important;
 }

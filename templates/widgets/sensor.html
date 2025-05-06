@@ -13,7 +13,9 @@
 
   <div class="sensor-charts">
     {% for m in device.metrics %}
-      <canvas id="chart-{{ m.name }}-{{ device.id }}" width="400" height="200"></canvas>
+      <div class="chart-wrapper" style="position: relative; height: 200px; margin-bottom: 20px;">
+        <canvas id="chart-{{ m.name }}-{{ device.id }}" width="400" height="200"></canvas>
+      </div>
     {% endfor %}
   </div>
   <div class="sensor-data-table">
