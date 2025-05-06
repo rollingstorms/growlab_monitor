@@ -1,5 +1,3 @@
-
-
 # config.yaml — GrowLab Dashboard & Controller Configuration
 
 # SQLite database file for sensor readings and device logs
@@ -35,10 +33,11 @@ devices:
   name: "Air Sensor"
   widget: sensor
   address: 0x44
+  sensor_type: "SHT40"
   metrics:
-    - name: temp
+    - name: temperature_C
       label: "Temperature (°C)"
-    - name: hum
+    - name: humidity_pct
       label: "Humidity (%)"
   source: local
 
