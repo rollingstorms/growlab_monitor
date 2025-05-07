@@ -10,18 +10,22 @@ widget_scripts:
   - device.js
   - clock.js
   - device_list.js
+  - control.js
 
 # Widgets and their loader classes
 widgets:
   sensor:
     module: "widgets.sensor"
     class: "SensorWidget"
-  # device:
-  #   module: "widgets.device"
-  #   class: "DeviceWidget"
+  device:
+    module: "widgets.device"
+    class: "DeviceWidget"
   clock:
     module: "widgets.clock"
     class: "ClockWidget"
+  control:
+    module: "widgets.control"
+    class: "ControlWidget"
   # device_list:
   #   module: "widgets.device_list"
   #   class: "DeviceListWidget"
@@ -49,7 +53,18 @@ devices:
     - name: soil_moisture
       label: "Soil Moisture (%)"
   source: remote
-      
+
+- id: "fan1"
+  type: "device"
+  name: "Exhaust Fan" 
+  widget: "device"
+  device_type: "tuya"  # Specifies this is a Tuya device
+  dev_id: "eb8efeff3b38dd5045okqw"  # Device ID from Tuya
+  ip: "192.168.68.150"  # Local IP of your plug
+  local_key: "lnLL$SjUG<&@p<uZ"  # Local key from Tuya Cloud
+  version: 3.5  # API version
+
+
   # - id: "fan1"
   #   type: "device"
   #   name: "Exhaust Fan"

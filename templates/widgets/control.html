@@ -1,0 +1,76 @@
+<div class="control-widget" id="control-{{ device.id }}" data-id="{{ device.id }}">
+  <h2>{{ device.name }}</h2>
+  
+  <div class="control-config">
+    <form id="control-form-{{ device.id }}">
+      <div class="form-group">
+        <label>Sensor:</label>
+        <select name="sensor_id" class="sensor-select">
+          <option value="">Select a sensor</option>
+          {% for sensor in sensors %}
+            <option value="{{ sensor.id }}" {% if config.sensor_id == sensor.id %}selected{% endif %}>
+              {{ sensor.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Metric:</label>
+        <select name="metric" class="metric-select">
+          <option value="">Select a metric</option>
+          <!-- Will be populated dynamically -->
+          {% if config.metric %}
+            <option value="{{ config.metric }}" selected>{{ config.metric }}</option>
+          {% endif %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>Condition:</label>
+        <select name="operator" class="operator-select">
+          {% for op in operators %}
+            <option value="{{ op }}" {% if config.operator == op %}selected{% endif %}>{{ op }}</option>
+          {% endfor %}
+        </select>
+        
+        <input type="number" name="target_value" class="target-value" 
+               value="{{ config.target_value|default(0.0) }}" step="0.1">
+      </div>
+      
+      <div class="form-group">
+        <label>Device to Control:</label>
+        <select name="device_id" class="device-select">
+          <option value="">Select a device</option>
+          {% for dev in devices %}
+            <option value="{{ dev.id }}" {% if config.device_id == dev.id %}selected{% endif %}>
+              {{ dev.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="switch">
+          <input type="checkbox" name="enabled" class="automation-toggle" 
+                 {% if config.enabled %}checked{% endif %}>
+          <span class="slider round"></span>
+        </label>
+        <span>Automation Enabled</span>
+      </div>
+      
+      <button type="submit" class="save-button">Save Configuration</button>
+    </form>
+  </div>
+  
+  <div class="manual-control">
+    <h3>Manual Control</h3>
+    <p>Control device directly:</p>
+    
+    <label class="switch">
+      <input type="checkbox" class="manual-toggle">
+      <span class="slider round"></span>
+    </label>
+    <span class="manual-toggle-label">Off</span>
+  </div>
+</div>

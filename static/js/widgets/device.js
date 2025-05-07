@@ -2,12 +2,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const POLL_INTERVAL = 60000; // 60s
 
   document.querySelectorAll('.device-widget').forEach(widget => {
-    const widgetId = widget.id;            // e.g., "device-fan1"
+    const widgetId = widget.id;            
     const deviceId = widgetId.split('-')[1];
 
     const statusSpan = widget.querySelector('.device-status');
-    const onBtn = widget.querySelector('.device-on');
-    const offBtn = widget.querySelector('.device-off');
+    const toggleSwitch = widget.querySelector('.device-toggle');
+    const toggleLabel = widget.querySelector('.toggle-label');
     const chartCanvas = widget.querySelector(`#device-chart-${deviceId}`);
 
     // Initialize Chart.js stepped line chart
@@ -47,37 +47,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update current status
         const current = json.current.state;
-        statusSpan.textContent = current.charAt(0).toUpperCase() + current.slice(1);
+        statusSpan.textContent = current ? current.charAt(0).toUpperCase() + current.slice(1) : '--';
+        
+        // Update toggle switch without triggering event
+        if (current) {
+          const isOn = current === 'on';
+          toggleSwitch.checked = isOn;
+          toggleLabel.textContent = isOn ? 'On' : 'Off';
+        }
 
         // Prepare history
-        const times = json.history.map(item => item.ts);
-        const states = json.history.map(item => item.state === 'on' ? 1 : 0);
+        if (json.history && json.history.length > 0) {
+          const times = json.history.map(item => {
+            // Format timestamp for display
+            const date = new Date(item.ts);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          });
+          const states = json.history.map(item => item.state === 'on' ? 1 : 0);
 
-        deviceChart.data.labels = times;
-        deviceChart.data.datasets[0].data = states;
-        deviceChart.update();
+          deviceChart.data.labels = times;
+          deviceChart.data.datasets[0].data = states;
+          deviceChart.update();
+        }
       } catch (err) {
         console.error('Failed to fetch device status:', err);
       }
     }
 
-    // Control buttons
-    onBtn.addEventListener('click', async () => {
-      await fetch(`/api/${deviceId}/control`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'on' })
-      });
-      updateDevice();
-    });
-
-    offBtn.addEventListener('click', async () => {
-      await fetch(`/api/${deviceId}/control`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'off' })
-      });
-      updateDevice();
+    // Toggle switch event
+    toggleSwitch.addEventListener('change', async () => {
+      const action = toggleSwitch.checked ? 'on' : 'off';
+      toggleLabel.textContent = toggleSwitch.checked ? 'On' : 'Off';
+      
+      try {
+        await fetch(`/api/${deviceId}/control`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action })
+        });
+        updateDevice();
+      } catch (err) {
+        console.error('Failed to control device:', err);
+        // Revert UI if control failed
+        toggleSwitch.checked = !toggleSwitch.checked;
+        toggleLabel.textContent = toggleSwitch.checked ? 'On' : 'Off';
+      }
     });
 
     // Initial load and polling

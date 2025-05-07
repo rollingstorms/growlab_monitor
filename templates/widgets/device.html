@@ -1,4 +1,4 @@
-<div class="device-widget" id="device-{{ device.id }}">
+<div class="device-widget" id="device-{{ device.id }}" data-device-type="{{ device.type }}">
   <h2>{{ device.name }}</h2>
 
   <div class="device-current">
@@ -9,6 +9,7 @@
   </div>
 
   <div class="device-controls">
+    <!-- Toggle switch will replace these buttons via JavaScript -->
     <button class="device-on">Turn On</button>
     <button class="device-off">Turn Off</button>
   </div>
