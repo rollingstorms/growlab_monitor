@@ -24,7 +24,7 @@ widgets:
     module: "widgets.clock"
     class: "ClockWidget"
   control:
-    module: "widgets.control"
+    module: "widgets.control_widget"
     class: "ControlWidget"
   # device_list:
   #   module: "widgets.device_list"
