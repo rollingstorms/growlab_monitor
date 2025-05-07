@@ -64,6 +64,16 @@ devices:
   local_key: "lnLL$SjUG<&@p<uZ"  # Local key from Tuya Cloud
   version: 3.5  # API version
 
+- id: "temp_fan_control"
+  type: "control"
+  name: "Temperature Fan Control"
+  widget: "control"
+  sensor_id: "sensor1"  # Air sensor
+  device_id: "fan1"     # Fan to control
+  metric: "temperature_C"
+  operator: ">"
+  target_value: 28.0
+  enabled: 1
 
   # - id: "fan1"
   #   type: "device"

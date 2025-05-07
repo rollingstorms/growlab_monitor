@@ -18,7 +18,8 @@ class ControlWidget(BaseWidget):
         self.thread.start()
         
     def register_routes(self):
-        control_id = self.device_info['id']
+        # Use get() with a default value to avoid KeyError if 'id' isn't present
+        control_id = self.device_info.get('id', 'control')
         
         # Get current configuration
         def _get_config():
@@ -75,10 +76,13 @@ class ControlWidget(BaseWidget):
             )
         """)
         
+        # Use get() to avoid KeyError
+        control_id = self.device_info.get('id', 'control')
+        
         # Get config for this control
         cursor.execute("""
             SELECT * FROM control_configs WHERE control_id = ?
-        """, (self.device_info["id"],))
+        """, (control_id,))
         
         row = cursor.fetchone()
         
@@ -100,7 +104,7 @@ class ControlWidget(BaseWidget):
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
-                self.device_info["id"], sensor_id, device_id, metric, 
+                control_id, sensor_id, device_id, metric, 
                 operator, target_value, enabled
             ))
             conn.commit()
@@ -108,7 +112,7 @@ class ControlWidget(BaseWidget):
             # Get the newly inserted config
             cursor.execute("""
                 SELECT * FROM control_configs WHERE control_id = ?
-            """, (self.device_info["id"],))
+            """, (control_id,))
             row = cursor.fetchone()
         
         result = dict(row) if row else {}
